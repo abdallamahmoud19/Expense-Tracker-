@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Expense Tracker</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Expense Tracker Dashboard</h1>
+            <p id="welcomeMessage">Welcome back!</p>
+        </div>
+        
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="/dashboard/view" class="active">📊 Dashboard</a></li>
+                <li><a href="/incomes/view">💰 Incomes</a></li>
+                <li><a href="/expenses/view">💸 Expenses</a></li>
+                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+            </ul>
+        </nav>
+
+        <div class="content">
+            <div id="loading" style="text-align: center; padding: 50px;">
+                <p>Loading dashboard data...</p>
+            </div>
+
+            <div id="dashboard-content" style="display: none;">
+                <div class="dashboard-stats">
+                    <div class="stat-card income-card">
+                        <h3>Total Income</h3>
+                        <div class="amount" id="totalIncome">$0</div>
+                    </div>
+                    <div class="stat-card expense-card">
+                        <h3>Total Expenses</h3>
+                        <div class="amount" id="totalExpense">$0</div>
+                    </div>
+                    <div class="stat-card balance-card">
+                        <h3>Net Balance</h3>
+                        <div class="amount" id="netBalance">$0</div>
+                    </div>
+                </div>
+
+                <div class="chart-container" style="width: 400px; height: 400px; margin: 0 auto;">
+                    <h3>Financial Overview</h3>
+                    <div style="width: 300px; height: 300px; margin: 0 auto;">
+                        <canvas id="balanceChart"></canvas>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 30px;">
+                    <div>
+                        <h3>Recent Incomes (Last 30 Days)</h3>
+                        <ul id="recentIncomes30" class="data-list">
+                            <!-- Recent incomes will be populated here -->
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>Recent Expenses (Last 30 Days)</h3>
+                        <ul id="recentExpenses30" class="data-list">
+                            <!-- Recent expenses will be populated here -->
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>Recent Incomes (Last 60 Days)</h3>
+                        <ul id="recentIncomes60" class="data-list">
+                            <!-- Recent incomes will be populated here -->
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>Recent Expenses (Last 60 Days)</h3>
+                        <ul id="recentExpenses60" class="data-list">
+                            <!-- Recent expenses will be populated here -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="error-message" class="alert alert-error" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString();
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login/view';
+        }
+
+        async function loadDashboard() {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                window.location.href = "/login/view";
+                return;
+            }
+
+            try {
+                const res = await fetch("/api/dashboard", {
+                    headers: {"Authorization": "Bearer " + token}
+                });
+
+                if (!res.ok) {
+                    if (res.status === 401 || res.status === 403) {
+                        localStorage.removeItem('token');
+                        window.location.href = '/login/view';
+                        return;
+                    }
+                    throw new Error('Failed to load dashboard');
+                }
+
+                const data = await res.json();
+
+                // Update stats
+                document.getElementById("totalIncome").textContent = formatCurrency(data.income.totalIncome);
+                document.getElementById("totalExpense").textContent = formatCurrency(data.expense.totalExpense);
+                document.getElementById("netBalance").textContent = formatCurrency(data.netBalance);
+
+                // Get user's first name from token or API
+                try {
+                    const token = localStorage.getItem("token");
+                    if (token) {
+                        // Decode JWT to get user info (simple base64 decode)
+                        const payload = JSON.parse(atob(token.split('.')[1]));
+                        if (payload.sub) {
+                            // Extract first name from email or use the whole subject
+                            const userName = payload.sub.split('@')[0];
+                            document.getElementById('welcomeMessage').textContent = `Welcome, ${userName}!`;
+                        }
+                    }
+                } catch (e) {
+                    // If token decoding fails, keep default message
+                    console.log('Could not decode user info from token');
+                }
+
+                // Update recent incomes (30 days)
+                const recentIncomes30Div = document.getElementById('recentIncomes30');
+                recentIncomes30Div.innerHTML = '';
+                if (data.income.last30DaysIncomes && data.income.last30DaysIncomes.length > 0) {
+                    data.income.last30DaysIncomes.slice(0, 5).forEach(income => {
+                        const li = document.createElement('li');
+                        li.className = 'data-item';
+                        li.innerHTML = `
+                            <div class="item-details">
+                                <div class="item-description">${income.icon} ${income.description}</div>
+                                <div class="item-meta">${income.source} • ${formatDate(income.date)}</div>
+                            </div>
+                            <div class="item-amount">${formatCurrency(income.amount)}</div>
+                        `;
+                        recentIncomes30Div.appendChild(li);
+                    });
+                } else {
+                    recentIncomes30Div.innerHTML = '<li class="data-item">No recent incomes (30 days)</li>';
+                }
+
+                // Update recent expenses (30 days)
+                const recentExpenses30Div = document.getElementById('recentExpenses30');
+                recentExpenses30Div.innerHTML = '';
+                if (data.expense.last30DaysExpenses && data.expense.last30DaysExpenses.length > 0) {
+                    data.expense.last30DaysExpenses.slice(0, 5).forEach(expense => {
+                        const li = document.createElement('li');
+                        li.className = 'data-item';
+                        li.innerHTML = `
+                            <div class="item-details">
+                                <div class="item-description">${expense.icon} ${expense.description}</div>
+                                <div class="item-meta">${expense.category} • ${formatDate(expense.date)}</div>
+                            </div>
+                            <div class="item-amount">${formatCurrency(expense.amount)}</div>
+                        `;
+                        recentExpenses30Div.appendChild(li);
+                    });
+                } else {
+                    recentExpenses30Div.innerHTML = '<li class="data-item">No recent expenses (30 days)</li>';
+                }
+
+                // Update recent incomes (60 days)
+                const recentIncomes60Div = document.getElementById('recentIncomes60');
+                recentIncomes60Div.innerHTML = '';
+                if (data.income.last60DaysIncomes && data.income.last60DaysIncomes.length > 0) {
+                    data.income.last60DaysIncomes.slice(0, 5).forEach(income => {
+                        const li = document.createElement('li');
+                        li.className = 'data-item';
+                        li.innerHTML = `
+                            <div class="item-details">
+                                <div class="item-description">${income.icon} ${income.description}</div>
+                                <div class="item-meta">${income.source} • ${formatDate(income.date)}</div>
+                            </div>
+                            <div class="item-amount">${formatCurrency(income.amount)}</div>
+                        `;
+                        recentIncomes60Div.appendChild(li);
+                    });
+                } else {
+                    recentIncomes60Div.innerHTML = '<li class="data-item">No recent incomes (60 days)</li>';
+                }
+
+                // Update recent expenses (60 days)
+                const recentExpenses60Div = document.getElementById('recentExpenses60');
+                recentExpenses60Div.innerHTML = '';
+                if (data.expense.last60DaysExpenses && data.expense.last60DaysExpenses.length > 0) {
+                    data.expense.last60DaysExpenses.slice(0, 5).forEach(expense => {
+                        const li = document.createElement('li');
+                        li.className = 'data-item';
+                        li.innerHTML = `
+                            <div class="item-details">
+                                <div class="item-description">${expense.icon} ${expense.description}</div>
+                                <div class="item-meta">${expense.category} • ${formatDate(expense.date)}</div>
+                            </div>
+                            <div class="item-amount">${formatCurrency(expense.amount)}</div>
+                        `;
+                        recentExpenses60Div.appendChild(li);
+                    });
+                } else {
+                    recentExpenses60Div.innerHTML = '<li class="data-item">No recent expenses (60 days)</li>';
+                }
+
+                // Create chart with net balance
+                const ctx = document.getElementById('balanceChart');
+                const totalIncome = data.income.totalIncome;
+                const totalExpense = data.expense.totalExpense;
+                const netBalance = data.netBalance;
+                
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Income', 'Expenses', 'Net Balance'],
+                        datasets: [{
+                            data: [totalIncome, totalExpense, Math.abs(netBalance)],
+                            backgroundColor: [
+                                '#4CAF50',  // Green for income
+                                '#f44336',  // Red for expenses
+                                netBalance >= 0 ? '#2196F3' : '#FF9800'  // Blue for positive, Orange for negative net
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        aspectRatio: 1,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 15,
+                                    usePointStyle: true
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label;
+                                        const value = context.parsed;
+                                        const formatted = new Intl.NumberFormat('en-US', {
+                                            style: 'currency',
+                                            currency: 'USD'
+                                        }).format(value);
+                                        return `${label}: ${formatted}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard-content').style.display = 'block';
+
+            } catch (error) {
+                showError("Failed to load dashboard data. Please try again.");
+                console.error('Dashboard error:', error);
+            }
+        }
+
+        window.onload = loadDashboard;
+    </script>
+</body>
+</html>

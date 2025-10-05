@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Expense Tracker</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="login-form">
+        <div class="header">
+            <h1>💰 Expense Tracker</h1>
+            <p>Please login to continue</p>
+        </div>
+        
+        <div id="error-message" class="alert alert-error" style="display: none;"></div>
+        
+        <form id="loginForm" onsubmit="login(event)">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" class="form-control" placeholder="Enter your email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-full" id="loginBtn">
+                <span id="loginText">Login</span>
+                <span id="loginSpinner" style="display: none;">Logging in...</span>
+            </button>
+        </form>
+    </div>
+
+    <script>
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error-message').style.display = 'none';
+        }
+
+        function setLoading(loading) {
+            const btn = document.getElementById('loginBtn');
+            const text = document.getElementById('loginText');
+            const spinner = document.getElementById('loginSpinner');
+            
+            btn.disabled = loading;
+            text.style.display = loading ? 'none' : 'inline';
+            spinner.style.display = loading ? 'inline' : 'none';
+        }
+
+        async function login(event) {
+            event.preventDefault();
+            hideError();
+            setLoading(true);
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                const res = await fetch("/auth/login", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({email, password})
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    localStorage.setItem("token", data.token);
+                    window.location.href = "/dashboard/view";
+                } else {
+                    const errorData = await res.json().catch(() => ({}));
+                    showError(errorData.message || "Login failed. Please check your credentials.");
+                }
+            } catch (error) {
+                showError("Network error. Please try again.");
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Check if user is already logged in
+        window.onload = function() {
+            const token = localStorage.getItem("token");
+            if (token) {
+                // Verify token is still valid by trying to access dashboard
+                fetch("/api/dashboard", {
+                    headers: {"Authorization": "Bearer " + token}
+                }).then(res => {
+                    if (res.ok) {
+                        window.location.href = "/dashboard/view";
+                    } else {
+                        localStorage.removeItem("token");
+                    }
+                }).catch(() => {
+                    localStorage.removeItem("token");
+                });
+            }
+        };
+    </script>
+</body>
+</html>
