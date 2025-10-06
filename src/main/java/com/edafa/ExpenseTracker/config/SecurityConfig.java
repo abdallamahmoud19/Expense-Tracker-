@@ -1,11 +1,10 @@
 package com.edafa.ExpenseTracker.config;
 
-import com.edafa.ExpenseTracker.security.JwtAuthenticationFilter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -13,8 +12,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.edafa.ExpenseTracker.security.JwtAuthenticationFilter;
+
+import lombok.RequiredArgsConstructor;
+
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Bean
@@ -29,11 +33,12 @@ public class SecurityConfig {
                                 "/dashboard/view",
                                 "/incomes/view",
                                 "/expenses/view",
+                                "/admin/view",
                                 "/css/**",
                                 "/js/**"
                         ).permitAll()
 
-                        .requestMatchers("/auth/login", "/api/**").permitAll()
+                        .requestMatchers("/auth/login", "/api/dashboard/**", "/expense/**","/income/**").permitAll()
 
                         .anyRequest().authenticated()
                 )

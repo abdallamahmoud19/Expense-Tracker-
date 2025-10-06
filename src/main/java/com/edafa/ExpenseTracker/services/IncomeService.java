@@ -112,7 +112,7 @@ public class IncomeService {
         headerRow.createCell(2).setCellValue("Date");
         headerRow.createCell(3).setCellValue("Source");
         headerRow.createCell(4).setCellValue("Description");
-        headerRow.createCell(5).setCellValue("Icon");
+
 
         // Data
         int rowIdx = 1;
@@ -123,7 +123,7 @@ public class IncomeService {
             row.createCell(2).setCellValue(income.getDate().toString());
             row.createCell(3).setCellValue(income.getSource());
             row.createCell(4).setCellValue(income.getDescription());
-            row.createCell(5).setCellValue(income.getIcon());
+
         }
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();

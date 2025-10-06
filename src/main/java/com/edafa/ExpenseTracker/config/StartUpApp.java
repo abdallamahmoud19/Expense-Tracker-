@@ -3,13 +3,13 @@ package com.edafa.ExpenseTracker.config;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
 import com.edafa.ExpenseTracker.entities.Role;
 import com.edafa.ExpenseTracker.entities.User;
 import com.edafa.ExpenseTracker.services.RoleService;
 import com.edafa.ExpenseTracker.services.UserService;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
-
 
 import lombok.RequiredArgsConstructor;
 
@@ -43,6 +43,10 @@ public class StartUpApp implements CommandLineRunner {
             Set<Role>  empRoles = new HashSet<>();
             empRoles.add(roleService.findByName("employee"));
 
+            // Create admin user
+            userService.save(new User(null, "Admin", "User", "admin@admin.com", "admin123", adminRoles));
+            
+            // Create regular users
             userService.save(new User(null, "Ali", "Mohamed", "ali.mohamed@gmail.com", "123", userRoles));
             userService.save(new User(null, "Sara", "Ahmed", "sara.ahmed@gmail.com", "123", userRoles));
             userService.save(new User(null, "Omar", "Hassan", "omar.hassan@gmail.com", "123", userRoles));

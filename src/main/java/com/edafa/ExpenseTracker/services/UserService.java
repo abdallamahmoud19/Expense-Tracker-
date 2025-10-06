@@ -1,21 +1,19 @@
 package com.edafa.ExpenseTracker.services;
 
-import com.edafa.ExpenseTracker.Repository.UserRepository;
+import java.util.List;
+import java.util.Optional;
 
-import com.edafa.ExpenseTracker.entities.User;
-
-
-import com.edafa.ExpenseTracker.security.AppUserDetails;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.edafa.ExpenseTracker.Repository.UserRepository;
+import com.edafa.ExpenseTracker.entities.User;
+import com.edafa.ExpenseTracker.security.AppUserDetails;
 
-import java.util.List;
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
@@ -53,6 +51,13 @@ public class UserService implements UserDetailsService {
         return new AppUserDetails(user.get());
     }
 
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
+    }
 
+    public boolean hasRole(User user, String roleName) {
+        return user.getRoles().stream()
+                .anyMatch(role -> role.getName().equalsIgnoreCase(roleName));
+    }
 
 }

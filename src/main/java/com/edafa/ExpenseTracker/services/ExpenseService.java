@@ -113,7 +113,7 @@ public class ExpenseService {
         headerRow.createCell(2).setCellValue("Date");
         headerRow.createCell(3).setCellValue("Category");
         headerRow.createCell(4).setCellValue("Description");
-        headerRow.createCell(5).setCellValue("Icon");
+
 
         // Data
         int rowIdx = 1;
@@ -124,7 +124,7 @@ public class ExpenseService {
             row.createCell(2).setCellValue(expense.getDate().toString());
             row.createCell(3).setCellValue(expense.getCategory());
             row.createCell(4).setCellValue(expense.getDescription());
-            row.createCell(5).setCellValue(expense.getIcon());
+
         }
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();

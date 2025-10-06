@@ -34,6 +34,11 @@
                                     💸 Expenses
                                 </a>
                             </li>
+                            <li class="nav-item mb-2" id="admin-nav" style="display: none;">
+                                <a href="/admin/view" class="nav-link">
+                                    👨‍💼 Admin Panel
+                                </a>
+                            </li>
                             <li class="nav-item mt-auto">
                                 <a href="#" onclick="logout()" class="nav-link">
                                     🚪 Logout
@@ -222,7 +227,7 @@
                 document.getElementById("totalExpense").textContent = formatCurrency(data.expense.totalExpense);
                 document.getElementById("netBalance").textContent = formatCurrency(data.netBalance);
 
-                // Get user's first name from token or API
+                // Get user's first name from token or API and check admin role
                 try {
                     const token = localStorage.getItem("token");
                     if (token) {
@@ -232,6 +237,11 @@
                             // Extract first name from email or use the whole subject
                             const userName = payload.sub.split('@')[0];
                             document.getElementById('welcomeMessage').textContent = `Welcome, ${userName}!`;
+                        }
+                        
+                        // Check if user has admin role
+                        if (payload.authorities && payload.authorities.includes('ROLE_ADMIN')) {
+                            document.getElementById('admin-nav').style.display = 'block';
                         }
                     }
                 } catch (e) {

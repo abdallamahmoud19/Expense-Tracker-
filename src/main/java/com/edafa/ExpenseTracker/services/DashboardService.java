@@ -25,51 +25,51 @@ public class DashboardService {
         List<Income> incomes = incomeRepository.findByUser_Id(userId);
         List<Expense> expenses = expenseRepository.findByUser_Id(userId);
 
-        // totals
+        // totals Income
         BigDecimal totalIncome = incomes.stream()
                 .map(i -> BigDecimal.valueOf(i.getAmount()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-
+        // totals Expense
         BigDecimal totalExpense = expenses.stream()
                 .map(e -> BigDecimal.valueOf(e.getAmount()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-
+        // Net balance after (Income - salary)
         BigDecimal netBalance = totalIncome.subtract(totalExpense);
 
         LocalDate now = LocalDate.now();
         LocalDate last30Days = now.minusDays(30);
         LocalDate last60Days = now.minusDays(60);
 
-        // income filters
+        // income filters 30 days -> now - 30 days
         List<IncomeResponseDto> last30DaysIncome = incomes.stream()
                 .filter(i -> !i.getDate().toInstant()
                         .isBefore(last30Days.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant()))
                 .map(this::mapToIncomeDto)
                 .collect(Collectors.toList());
-
+        // income filters 30 days -> now - 60 days
         List<IncomeResponseDto> last60DaysIncome = incomes.stream()
                 .filter(i -> !i.getDate().toInstant()
                         .isBefore(last60Days.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant()))
                 .map(this::mapToIncomeDto)
                 .collect(Collectors.toList());
-
+        // loop in total incomes
         List<IncomeResponseDto> allIncome = incomes.stream()
                 .map(this::mapToIncomeDto)
                 .collect(Collectors.toList());
 
-        // expense filters
+        // expense filters 30 days -> now - 30 days
         List<ExpenseResponseDto> last30DaysExpense = expenses.stream()
                 .filter(e -> !e.getDate().toInstant()
                         .isBefore(last30Days.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant()))
                 .map(this::mapToExpenseDto)
                 .collect(Collectors.toList());
-
+        // expense filters 30 days -> now - 60 days
         List<ExpenseResponseDto> last60DaysExpense = expenses.stream()
                 .filter(e -> !e.getDate().toInstant()
                         .isBefore(last60Days.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant()))
                 .map(this::mapToExpenseDto)
                 .collect(Collectors.toList());
-
+        // loop in total expense
         List<ExpenseResponseDto> allExpense = expenses.stream()
                 .map(this::mapToExpenseDto)
                 .collect(Collectors.toList());

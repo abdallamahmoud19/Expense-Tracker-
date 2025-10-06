@@ -26,4 +26,9 @@ public class ViewController {
     public String expensesPage() {
         return "expenses";
     }
+
+    @GetMapping("/admin/view")
+    public String adminPage() {
+        return "admin";
+    }
 }
