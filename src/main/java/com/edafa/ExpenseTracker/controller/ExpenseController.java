@@ -1,27 +1,33 @@
 package com.edafa.ExpenseTracker.controller;
 
-import com.edafa.ExpenseTracker.dto.ErrorResponse;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
 
-import com.edafa.ExpenseTracker.dto.response.ExpenseResponseDto;
-import com.edafa.ExpenseTracker.entities.Expense;
-import com.edafa.ExpenseTracker.entities.Income;
-import com.edafa.ExpenseTracker.entities.User;
-import com.edafa.ExpenseTracker.security.AppUserDetails;
-import com.edafa.ExpenseTracker.services.ExpenseService;
-import com.edafa.ExpenseTracker.services.IncomeService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
+import com.edafa.ExpenseTracker.dto.ErrorResponse;
+import com.edafa.ExpenseTracker.dto.response.ExpenseResponseDto;
+import com.edafa.ExpenseTracker.entities.Expense;
+import com.edafa.ExpenseTracker.entities.User;
+import com.edafa.ExpenseTracker.security.AppUserDetails;
+import com.edafa.ExpenseTracker.services.ExpenseService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
@@ -59,8 +65,13 @@ public class ExpenseController {
 
     // GET /expense/getall
     @GetMapping("/getall")
-    public ResponseEntity<List<ExpenseResponseDto>> getAllExpense() {
-        return ResponseEntity.ok(expenseService.getAllExpenses());
+    public ResponseEntity<List<ExpenseResponseDto>> getAllExpense(Authentication authentication) {
+        try {
+            return ResponseEntity.ok(expenseService.getAllExpenses());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
     }
 
     // DELETE /expense/delete/{id}
@@ -76,6 +87,30 @@ public class ExpenseController {
                             .message(e.getMessage())
                             .build()
                     );
+        }
+    }
+
+    // PUT /expense/update/{id}
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateExpense(@PathVariable Long id, @RequestBody Expense expense,
+                                         Authentication authentication) {
+        try {
+            AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
+            Long userId = userDetails.getId();
+
+            User user = new User();
+            user.setId(userId);
+            expense.setUser(user);
+            expense.setId(id);
+
+            ExpenseResponseDto updatedExpense = expenseService.saveExpense(expense);
+            return ResponseEntity.ok(updatedExpense);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ErrorResponse.builder()
+                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                            .message("Server error: " + e.getMessage())
+                            .build());
         }
     }
 

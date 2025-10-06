@@ -23,19 +23,18 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Public pages
-                        .requestMatchers("/login/view", "/css/**", "/js/**").permitAll()
+                        // Public UI pages
+                        .requestMatchers(
+                                "/login/view",
+                                "/dashboard/view",
+                                "/incomes/view",
+                                "/expenses/view",
+                                "/css/**",
+                                "/js/**"
+                        ).permitAll()
 
-                        // Open login API
-                        .requestMatchers("/auth/login").permitAll()
+                        .requestMatchers("/auth/login", "/api/**").permitAll()
 
-                        // UI pages after login
-                        .requestMatchers("/dashboard/view", "/incomes/view", "/expenses/view").permitAll()
-
-                        // All other APIs require token
-                        .requestMatchers("/api/**").authenticated()
-
-                        // Everything else requires auth
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

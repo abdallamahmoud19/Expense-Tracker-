@@ -4,106 +4,178 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Incomes - Expense Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>💰 Income Management</h1>
-        </div>
-        
-        <nav class="nav-menu">
-            <ul>
-                <li><a href="/dashboard/view">📊 Dashboard</a></li>
-                <li><a href="/incomes/view" class="active">💰 Incomes</a></li>
-                <li><a href="/expenses/view">💸 Expenses</a></li>
-                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
-            </ul>
-        </nav>
-
-        <div class="content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                <h2>Your Incomes</h2>
-                <button onclick="exportIncomes()" class="btn btn-secondary">📊 Export Excel</button>
-            </div>
-
-            <div id="loading" style="text-align: center; padding: 50px;">
-                <p>Loading incomes...</p>
-            </div>
-
-            <div id="error-message" class="alert alert-error" style="display: none;"></div>
-            <div id="success-message" class="alert alert-success" style="display: none;"></div>
-
-            <div class="chart-container" style="max-width: 600px; margin: 0 auto 30px auto;">
-                <h3>💰 Add New Income</h3>
-                <form id="incomeForm" onsubmit="addIncome(event)">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="description">Description</label>
-                            <input id="description" class="form-control" placeholder="Income description" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="amount">Amount ($)</label>
-                            <input id="amount" class="form-control" placeholder="0.00" type="number" step="0.01" min="0" required>
-                        </div>
+    <div class="main-container">
+        <div class="row g-0 h-100">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2">
+                <div class="d-flex flex-column vh-100 navbar-custom glass-heavy">
+                    <div class="p-3 text-center">
+                        <h4 class="mb-0">💰 Expense Tracker</h4>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="source">Source</label>
-                            <select id="sourceSelect" class="form-control" onchange="toggleCustomSource()">
-                                <option value="">Select income source</option>
-                                <option value="Salary">Salary</option>
-                                <option value="Freelance">Freelance</option>
-                                <option value="Business">Business</option>
-                                <option value="Investment">Investment</option>
-                                <option value="Gift">Gift</option>
-                                <option value="custom">Other (Enter custom)</option>
-                            </select>
-                            <input id="customSource" class="form-control" style="display: none; margin-top: 10px;"
-                                   placeholder="Enter custom source" />
-                        </div>
-                        <div class="form-group">
-                            <label for="icon">Icon</label>
-                            <select id="icon" class="form-control">
-                                <option value="💰">💰 Money</option>
-                                <option value="💵">💵 Dollar</option>
-                                <option value="💎">💎 Diamond</option>
-                                <option value="🏆">🏆 Trophy</option>
-                                <option value="💼">💼 Business</option>
-                                <option value="🎁">🎁 Gift</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="date">Date</label>
-                            <input id="date" class="form-control" type="date" required>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary" id="addBtn">
-                            <span id="addText">Add Income</span>
-                            <span id="addSpinner" style="display: none;">Adding...</span>
-                        </button>
-                        <button type="reset" class="btn btn-secondary">Clear Form</button>
-                    </div>
-                </form>
-            </div>
-
-            <div id="incomes-content" style="display: none;">
-                <div class="chart-container" style="margin-bottom: 30px; max-width: 600px; height: 300px;">
-                    <h3>Income Overview (Last 30 Days)</h3>
-                    <canvas id="incomeChart"></canvas>
+                    <nav class="flex-grow-1">
+                        <ul class="nav nav-pills flex-column p-3">
+                            <li class="nav-item mb-2">
+                                <a href="/dashboard/view" class="nav-link">
+                                    📊 Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item mb-2">
+                                <a href="/incomes/view" class="nav-link active">
+                                    💰 Incomes
+                                </a>
+                            </li>
+                            <li class="nav-item mb-2">
+                                <a href="/expenses/view" class="nav-link">
+                                    💸 Expenses
+                                </a>
+                            </li>
+                            <li class="nav-item mt-auto">
+                                <a href="#" onclick="logout()" class="nav-link">
+                                    🚪 Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10">
+                <div class="content-wrapper p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h1 class="h2 mb-1">💰 Income Management</h1>
+                        </div>
+                        <button onclick="exportIncomes()" class="btn btn-outline-success">
+                            📊 Export Excel
+                        </button>
+                    </div>
 
-                <ul id="incomesList" class="data-list">
-                    <!-- Incomes will be populated here -->
-                </ul>
+                    <div id="loading" class="text-center py-5">
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading incomes...</p>
+                    </div>
+
+                    <div id="error-message" class="alert alert-danger" style="display: none;" role="alert"></div>
+                    <div id="success-message" class="alert alert-success" style="display: none;" role="alert"></div>
+
+                    <!-- Add Income Form -->
+                    <div class="row mb-4">
+                        <div class="col-lg-8 mx-auto">
+                            <div class="card form-card glass">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="card-title mb-0" id="formTitle">💰 Add New Income</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="incomeForm" onsubmit="submitIncomeForm(event)">
+                                        <input type="hidden" id="incomeId" value="">
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="description" class="form-label">Description</label>
+                                                <input id="description" class="form-control" placeholder="Income description" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="amount" class="form-label">Amount ($)</label>
+                                                <input id="amount" class="form-control" placeholder="0.00" type="number" step="0.01" min="0" required>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="sourceSelect" class="form-label">Source</label>
+                                                <select id="sourceSelect" class="form-select" onchange="toggleCustomSource()">
+                                                    <option value="">Select income source</option>
+                                                    <option value="Salary">Salary</option>
+                                                    <option value="Freelance">Freelance</option>
+                                                    <option value="Business">Business</option>
+                                                    <option value="Investment">Investment</option>
+                                                    <option value="Gift">Gift</option>
+                                                    <option value="custom">Other (Enter custom)</option>
+                                                </select>
+                                                <input id="customSource" class="form-control mt-2" style="display: none;"
+                                                       placeholder="Enter custom source" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="icon" class="form-label">Icon</label>
+                                                <select id="icon" class="form-select">
+                                                    <option value="💰">💰 Money</option>
+                                                    <option value="💵">💵 Dollar</option>
+                                                    <option value="💎">💎 Diamond</option>
+                                                    <option value="🏆">🏆 Trophy</option>
+                                                    <option value="💼">💼 Business</option>
+                                                    <option value="🎁">🎁 Gift</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="date" class="form-label">Date</label>
+                                                <input id="date" class="form-control" type="date" required>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            <button type="submit" class="btn btn-success" id="submitBtn">
+                                                <span id="submitText">Add Income</span>
+                                                <span id="submitSpinner" class="spinner-border spinner-border-sm ms-2" style="display: none;" role="status"></span>
+                                            </button>
+                                            <button type="reset" class="btn btn-secondary" onclick="resetForm()">Clear Form</button>
+                                            <button type="button" class="btn btn-outline-secondary" id="cancelBtn" onclick="cancelEdit()" style="display: none;">Cancel Edit</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="incomes-content" style="display: none;">
+                        <!-- Chart Section -->
+                        <div class="row mb-4">
+                            <div class="col-lg-8 mx-auto">
+                                <div class="card chart-card glass">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Income Overview (Last 30 Days)</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div style="position: relative; height: 300px;">
+                                            <canvas id="incomeChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Incomes List -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card glass">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Your Incomes</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="incomesList">
+                                            <!-- Incomes will be populated here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function showError(message) {
             const errorDiv = document.getElementById('error-message');
@@ -140,14 +212,73 @@
             window.location.href = '/login/view';
         }
 
-        function setAddLoading(loading) {
-            const btn = document.getElementById('addBtn');
-            const text = document.getElementById('addText');
-            const spinner = document.getElementById('addSpinner');
+        function setSubmitLoading(loading) {
+            const btn = document.getElementById('submitBtn');
+            const text = document.getElementById('submitText');
+            const spinner = document.getElementById('submitSpinner');
             
             btn.disabled = loading;
             text.style.display = loading ? 'none' : 'inline';
-            spinner.style.display = loading ? 'inline' : 'none';
+            spinner.style.display = loading ? 'inline-block' : 'none';
+        }
+
+        function resetForm() {
+            document.getElementById('incomeForm').reset();
+            document.getElementById('incomeId').value = '';
+            document.getElementById('formTitle').textContent = '💰 Add New Income';
+            document.getElementById('submitText').textContent = 'Add Income';
+            document.getElementById('cancelBtn').style.display = 'none';
+            document.getElementById('date').value = new Date().toISOString().split('T')[0];
+            
+            // Reset custom source if visible
+            const sourceSelect = document.getElementById('sourceSelect');
+            const customSource = document.getElementById('customSource');
+            sourceSelect.value = '';
+            customSource.style.display = 'none';
+            customSource.value = '';
+        }
+
+        function cancelEdit() {
+            resetForm();
+        }
+
+        function editIncome(id, description, amount, source, icon, date) {
+            document.getElementById('incomeId').value = id;
+            document.getElementById('description').value = description;
+            document.getElementById('amount').value = amount;
+            document.getElementById('icon').value = icon;
+            document.getElementById('date').value = date;
+            
+            // Handle source (check if it's a predefined option or custom)
+            const sourceSelect = document.getElementById('sourceSelect');
+            const customSource = document.getElementById('customSource');
+            const predefinedSources = ['Salary', 'Freelance', 'Business', 'Investment', 'Gift'];
+            
+            if (predefinedSources.includes(source)) {
+                sourceSelect.value = source;
+                customSource.style.display = 'none';
+                customSource.value = '';
+            } else {
+                sourceSelect.value = 'custom';
+                customSource.style.display = 'block';
+                customSource.value = source;
+            }
+            
+            document.getElementById('formTitle').textContent = '✏️ Edit Income';
+            document.getElementById('submitText').textContent = 'Update Income';
+            document.getElementById('cancelBtn').style.display = 'inline-block';
+            
+            // Scroll to form
+            document.getElementById('incomeForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function submitIncomeForm(event) {
+            const incomeId = document.getElementById('incomeId').value;
+            if (incomeId) {
+                updateIncome(event);
+            } else {
+                addIncome(event);
+            }
         }
 
         async function loadIncomes() {
@@ -177,24 +308,27 @@
 
                 if (data && data.length > 0) {
                     data.forEach(income => {
-                        const li = document.createElement('li');
-                        li.className = 'data-item';
-                        li.innerHTML = `
-                            <div class="item-details">
-                                <div class="item-description">${income.icon} ${income.description}</div>
-                                <div class="item-meta">${income.source} • ${formatDate(income.date)}</div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 15px;">
-                                <div class="item-amount">${formatCurrency(income.amount)}</div>
-                                <div class="item-actions">
-                                    <button onclick="deleteIncome(${income.id})" class="btn btn-danger">Delete</button>
+                        const item = document.createElement('div');
+                        item.className = 'card mb-2 income-item glass-light';
+                        item.innerHTML = `
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-bold">${income.icon} ${income.description}</div>
+                                    <small class="text-muted">${income.source} • ${formatDate(income.date)}</small>
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="badge bg-success fs-6">${formatCurrency(income.amount)}</span>
+                                    <div class="btn-group" role="group">
+                                        <button onclick="editIncome(${income.id}, '${income.description}', ${income.amount}, '${income.source}', '${income.icon}', '${income.date}')" class="btn btn-sm btn-outline-primary">Edit</button>
+                                        <button onclick="deleteIncome(${income.id})" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </div>
                                 </div>
                             </div>
                         `;
-                        list.appendChild(li);
+                        list.appendChild(item);
                     });
                 } else {
-                    list.innerHTML = '<li class="data-item">No incomes found. Add your first income below!</li>';
+                    list.innerHTML = '<div class="alert alert-info glass">No incomes found. Add your first income above!</div>';
                 }
 
                 // Create income overview chart
@@ -213,7 +347,7 @@
         async function addIncome(event) {
             event.preventDefault();
             hideMessages();
-            setAddLoading(true);
+            setSubmitLoading(true);
 
             const token = localStorage.getItem("token");
 
@@ -226,12 +360,12 @@
                 sourceValue = customSource.value.trim();
                 if (!sourceValue) {
                     showError("Please enter a custom source.");
-                    setAddLoading(false);
+                    setSubmitLoading(false);
                     return;
                 }
             } else if (!sourceValue) {
                 showError("Please select or enter an income source.");
-                setAddLoading(false);
+                setSubmitLoading(false);
                 return;
             }
 
@@ -255,9 +389,7 @@
 
                 if (res.ok) {
                     showSuccess("Income added successfully!");
-                    document.getElementById("incomeForm").reset();
-                    // Set default date to today
-                    document.getElementById("date").value = new Date().toISOString().split('T')[0];
+                    resetForm();
                     loadIncomes();
                 } else {
                     const errorData = await res.json().catch(() => ({}));
@@ -267,7 +399,67 @@
                 showError("Network error. Please try again.");
                 console.error('Add income error:', error);
             } finally {
-                setAddLoading(false);
+                setSubmitLoading(false);
+            }
+        }
+
+        async function updateIncome(event) {
+            event.preventDefault();
+            hideMessages();
+            setSubmitLoading(true);
+
+            const token = localStorage.getItem("token");
+            const incomeId = document.getElementById('incomeId').value;
+
+            // Get source value (either from select or custom input)
+            const sourceSelect = document.getElementById("sourceSelect");
+            const customSource = document.getElementById("customSource");
+            let sourceValue = sourceSelect.value;
+            
+            if (sourceSelect.value === "custom") {
+                sourceValue = customSource.value.trim();
+                if (!sourceValue) {
+                    showError("Please enter a custom source.");
+                    setSubmitLoading(false);
+                    return;
+                }
+            } else if (!sourceValue) {
+                showError("Please select or enter an income source.");
+                setSubmitLoading(false);
+                return;
+            }
+
+            const income = {
+                description: document.getElementById("description").value,
+                icon: document.getElementById("icon").value,
+                amount: parseFloat(document.getElementById("amount").value),
+                source: sourceValue,
+                date: document.getElementById("date").value
+            };
+
+            try {
+                const res = await fetch(`/income/update/${incomeId}`, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": "Bearer " + token,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(income)
+                });
+
+                if (res.ok) {
+                    showSuccess("Income updated successfully!");
+                    resetForm();
+                    loadIncomes();
+                } else {
+                    const errorData = await res.json().catch(() => ({}));
+                    showError(errorData.message || "Failed to update income. Please try again.");
+                }
+            } catch (error) {
+                showError("Network error. Please try again.");
+                console.error('Update income error:', error);
+            } finally {
+                setSubmitLoading(false);
             }
         }
 
@@ -376,8 +568,8 @@
                     datasets: [{
                         label: 'Income',
                         data: data,
-                        backgroundColor: '#4CAF50',
-                        borderColor: '#45a049',
+                        backgroundColor: '#30D158',
+                        borderColor: '#00C851',
                         borderWidth: 1
                     }]
                 },
@@ -390,7 +582,19 @@
                             ticks: {
                                 callback: function(value) {
                                     return '$' + value.toLocaleString();
-                                }
+                                },
+                                color: '#FFFFFF'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#FFFFFF'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
                             }
                         }
                     },

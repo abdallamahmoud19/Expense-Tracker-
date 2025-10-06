@@ -4,114 +4,186 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expenses - Expense Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>💸 Expense Management</h1>
-        </div>
-        
-        <nav class="nav-menu">
-            <ul>
-                <li><a href="/dashboard/view">📊 Dashboard</a></li>
-                <li><a href="/incomes/view">💰 Incomes</a></li>
-                <li><a href="/expenses/view" class="active">💸 Expenses</a></li>
-                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
-            </ul>
-        </nav>
-
-        <div class="content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                <h2>Your Expenses</h2>
-                <button onclick="exportExpenses()" class="btn btn-secondary">📊 Export Excel</button>
-            </div>
-
-            <div id="loading" style="text-align: center; padding: 50px;">
-                <p>Loading expenses...</p>
-            </div>
-
-            <div id="error-message" class="alert alert-error" style="display: none;"></div>
-            <div id="success-message" class="alert alert-success" style="display: none;"></div>
-
-            <div class="chart-container" style="max-width: 600px; margin: 0 auto 30px auto;">
-                <h3>💸 Add New Expense</h3>
-                <form id="expenseForm" onsubmit="addExpense(event)">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="description">Description</label>
-                            <input id="description" class="form-control" placeholder="Expense description" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="amount">Amount ($)</label>
-                            <input id="amount" class="form-control" placeholder="0.00" type="number" step="0.01" min="0" required>
-                        </div>
+    <div class="main-container">
+        <div class="row g-0 h-100">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2">
+                <div class="d-flex flex-column vh-100 navbar-custom glass-heavy">
+                    <div class="p-3 text-center">
+                        <h4 class="mb-0">💰 Expense Tracker</h4>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="category">Category</label>
-                            <select id="categorySelect" class="form-control" onchange="toggleCustomCategory()">
-                                <option value="">Select category</option>
-                                <option value="Food">Food & Dining</option>
-                                <option value="Transportation">Transportation</option>
-                                <option value="Shopping">Shopping</option>
-                                <option value="Entertainment">Entertainment</option>
-                                <option value="Bills">Bills & Utilities</option>
-                                <option value="Healthcare">Healthcare</option>
-                                <option value="Education">Education</option>
-                                <option value="Travel">Travel</option>
-                                <option value="Work">Work</option>
-                                <option value="custom">Other (Enter custom)</option>
-                            </select>
-                            <input id="customCategory" class="form-control" style="display: none; margin-top: 10px;"
-                                   placeholder="Enter custom category" />
-                        </div>
-                        <div class="form-group">
-                            <label for="icon">Icon</label>
-                            <select id="icon" class="form-control">
-                                <option value="💸">💸 Money Out</option>
-                                <option value="🍕">🍕 Food</option>
-                                <option value="🚗">🚗 Transport</option>
-                                <option value="🛍️">🛍️ Shopping</option>
-                                <option value="🎬">🎬 Entertainment</option>
-                                <option value="⚡">⚡ Bills</option>
-                                <option value="🏥">🏥 Healthcare</option>
-                                <option value="📚">📚 Education</option>
-                                <option value="✈️">✈️ Travel</option>
-                                <option value="💼">💼 Work</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="date">Date</label>
-                            <input id="date" class="form-control" type="date" required>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary" id="addBtn">
-                            <span id="addText">Add Expense</span>
-                            <span id="addSpinner" style="display: none;">Adding...</span>
-                        </button>
-                        <button type="reset" class="btn btn-secondary">Clear Form</button>
-                    </div>
-                </form>
-            </div>
-
-            <div id="expenses-content" style="display: none;">
-                <div class="chart-container" style="margin-bottom: 30px; max-width: 600px; height: 300px;">
-                    <h3>Expense Overview (Last 30 Days)</h3>
-                    <canvas id="expenseChart"></canvas>
+                    <nav class="flex-grow-1">
+                        <ul class="nav nav-pills flex-column p-3">
+                            <li class="nav-item mb-2">
+                                <a href="/dashboard/view" class="nav-link">
+                                    📊 Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item mb-2">
+                                <a href="/incomes/view" class="nav-link">
+                                    💰 Incomes
+                                </a>
+                            </li>
+                            <li class="nav-item mb-2">
+                                <a href="/expenses/view" class="nav-link active">
+                                    💸 Expenses
+                                </a>
+                            </li>
+                            <li class="nav-item mt-auto">
+                                <a href="#" onclick="logout()" class="nav-link">
+                                    🚪 Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10">
+                <div class="content-wrapper p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h1 class="h2 mb-1">💸 Expense Management</h1>
+                        </div>
+                        <button onclick="exportExpenses()" class="btn btn-outline-primary">
+                            📊 Export Excel
+                        </button>
+                    </div>
 
-                <ul id="expensesList" class="data-list">
-                    <!-- Expenses will be populated here -->
-                </ul>
+                    <div id="loading" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading expenses...</p>
+                    </div>
+
+                    <div id="error-message" class="alert alert-danger" style="display: none;" role="alert"></div>
+                    <div id="success-message" class="alert alert-success" style="display: none;" role="alert"></div>
+
+                    <!-- Add Expense Form -->
+                    <div class="row mb-4">
+                        <div class="col-lg-8 mx-auto">
+                            <div class="card form-card glass">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="card-title mb-0" id="formTitle">💸 Add New Expense</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="expenseForm" onsubmit="submitExpenseForm(event)">
+                                        <input type="hidden" id="expenseId" value="">
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="description" class="form-label">Description</label>
+                                                <input id="description" class="form-control" placeholder="Expense description" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="amount" class="form-label">Amount ($)</label>
+                                                <input id="amount" class="form-control" placeholder="0.00" type="number" step="0.01" min="0" required>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="categorySelect" class="form-label">Category</label>
+                                                <select id="categorySelect" class="form-select" onchange="toggleCustomCategory()">
+                                                    <option value="">Select category</option>
+                                                    <option value="Food">Food & Dining</option>
+                                                    <option value="Transportation">Transportation</option>
+                                                    <option value="Shopping">Shopping</option>
+                                                    <option value="Entertainment">Entertainment</option>
+                                                    <option value="Bills">Bills & Utilities</option>
+                                                    <option value="Healthcare">Healthcare</option>
+                                                    <option value="Education">Education</option>
+                                                    <option value="Travel">Travel</option>
+                                                    <option value="Work">Work</option>
+                                                    <option value="custom">Other (Enter custom)</option>
+                                                </select>
+                                                <input id="customCategory" class="form-control mt-2" style="display: none;"
+                                                       placeholder="Enter custom category" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="icon" class="form-label">Icon</label>
+                                                <select id="icon" class="form-select">
+                                                    <option value="💸">💸 Money Out</option>
+                                                    <option value="🍕">🍕 Food</option>
+                                                    <option value="🚗">🚗 Transport</option>
+                                                    <option value="🛍️">🛍️ Shopping</option>
+                                                    <option value="🎬">🎬 Entertainment</option>
+                                                    <option value="⚡">⚡ Bills</option>
+                                                    <option value="🏥">🏥 Healthcare</option>
+                                                    <option value="📚">📚 Education</option>
+                                                    <option value="✈️">✈️ Travel</option>
+                                                    <option value="💼">💼 Work</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="date" class="form-label">Date</label>
+                                                <input id="date" class="form-control" type="date" required>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                                <span id="submitText">Add Expense</span>
+                                                <span id="submitSpinner" class="spinner-border spinner-border-sm ms-2" style="display: none;" role="status"></span>
+                                            </button>
+                                            <button type="reset" class="btn btn-secondary" onclick="resetForm()">Clear Form</button>
+                                            <button type="button" class="btn btn-outline-secondary" id="cancelBtn" onclick="cancelEdit()" style="display: none;">Cancel Edit</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="expenses-content" style="display: none;">
+                        <!-- Chart Section -->
+                        <div class="row mb-4">
+                            <div class="col-lg-8 mx-auto">
+                                <div class="card chart-card glass">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Expense Overview (Last 30 Days)</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div style="position: relative; height: 300px;">
+                                            <canvas id="expenseChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Expenses List -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card glass">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Your Expenses</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="expensesList">
+                                            <!-- Expenses will be populated here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function showError(message) {
             const errorDiv = document.getElementById('error-message');
@@ -148,14 +220,73 @@
             window.location.href = '/login/view';
         }
 
-        function setAddLoading(loading) {
-            const btn = document.getElementById('addBtn');
-            const text = document.getElementById('addText');
-            const spinner = document.getElementById('addSpinner');
+        function setSubmitLoading(loading) {
+            const btn = document.getElementById('submitBtn');
+            const text = document.getElementById('submitText');
+            const spinner = document.getElementById('submitSpinner');
             
             btn.disabled = loading;
             text.style.display = loading ? 'none' : 'inline';
-            spinner.style.display = loading ? 'inline' : 'none';
+            spinner.style.display = loading ? 'inline-block' : 'none';
+        }
+
+        function resetForm() {
+            document.getElementById('expenseForm').reset();
+            document.getElementById('expenseId').value = '';
+            document.getElementById('formTitle').textContent = '💸 Add New Expense';
+            document.getElementById('submitText').textContent = 'Add Expense';
+            document.getElementById('cancelBtn').style.display = 'none';
+            document.getElementById('date').value = new Date().toISOString().split('T')[0];
+            
+            // Reset custom category if visible
+            const categorySelect = document.getElementById('categorySelect');
+            const customCategory = document.getElementById('customCategory');
+            categorySelect.value = '';
+            customCategory.style.display = 'none';
+            customCategory.value = '';
+        }
+
+        function cancelEdit() {
+            resetForm();
+        }
+
+        function editExpense(id, description, amount, category, icon, date) {
+            document.getElementById('expenseId').value = id;
+            document.getElementById('description').value = description;
+            document.getElementById('amount').value = amount;
+            document.getElementById('icon').value = icon;
+            document.getElementById('date').value = date;
+            
+            // Handle category (check if it's a predefined option or custom)
+            const categorySelect = document.getElementById('categorySelect');
+            const customCategory = document.getElementById('customCategory');
+            const predefinedCategories = ['Food', 'Transportation', 'Shopping', 'Entertainment', 'Bills', 'Healthcare', 'Education', 'Travel', 'Work'];
+            
+            if (predefinedCategories.includes(category)) {
+                categorySelect.value = category;
+                customCategory.style.display = 'none';
+                customCategory.value = '';
+            } else {
+                categorySelect.value = 'custom';
+                customCategory.style.display = 'block';
+                customCategory.value = category;
+            }
+            
+            document.getElementById('formTitle').textContent = '✏️ Edit Expense';
+            document.getElementById('submitText').textContent = 'Update Expense';
+            document.getElementById('cancelBtn').style.display = 'inline-block';
+            
+            // Scroll to form
+            document.getElementById('expenseForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function submitExpenseForm(event) {
+            const expenseId = document.getElementById('expenseId').value;
+            if (expenseId) {
+                updateExpense(event);
+            } else {
+                addExpense(event);
+            }
         }
 
         async function loadExpenses() {
@@ -185,24 +316,27 @@
 
                 if (data && data.length > 0) {
                     data.forEach(expense => {
-                        const li = document.createElement('li');
-                        li.className = 'data-item';
-                        li.innerHTML = `
-                            <div class="item-details">
-                                <div class="item-description">${expense.icon} ${expense.description}</div>
-                                <div class="item-meta">${expense.category} • ${formatDate(expense.date)}</div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 15px;">
-                                <div class="item-amount" style="color: #f44336;">${formatCurrency(expense.amount)}</div>
-                                <div class="item-actions">
-                                    <button onclick="deleteExpense(${expense.id})" class="btn btn-danger">Delete</button>
+                        const item = document.createElement('div');
+                        item.className = 'card mb-2 expense-item glass-light';
+                        item.innerHTML = `
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-bold">${expense.icon} ${expense.description}</div>
+                                    <small class="text-muted">${expense.category} • ${formatDate(expense.date)}</small>
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="badge bg-danger fs-6">${formatCurrency(expense.amount)}</span>
+                                    <div class="btn-group" role="group">
+                                        <button onclick="editExpense(${expense.id}, '${expense.description}', ${expense.amount}, '${expense.category}', '${expense.icon}', '${expense.date}')" class="btn btn-sm btn-outline-primary">Edit</button>
+                                        <button onclick="deleteExpense(${expense.id})" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </div>
                                 </div>
                             </div>
                         `;
-                        list.appendChild(li);
+                        list.appendChild(item);
                     });
                 } else {
-                    list.innerHTML = '<li class="data-item">No expenses found. Add your first expense below!</li>';
+                    list.innerHTML = '<div class="alert alert-info glass">No expenses found. Add your first expense above!</div>';
                 }
 
                 // Create expense overview chart
@@ -221,7 +355,7 @@
         async function addExpense(event) {
             event.preventDefault();
             hideMessages();
-            setAddLoading(true);
+            setSubmitLoading(true);
 
             const token = localStorage.getItem("token");
 
@@ -234,12 +368,12 @@
                 categoryValue = customCategory.value.trim();
                 if (!categoryValue) {
                     showError("Please enter a custom category.");
-                    setAddLoading(false);
+                    setSubmitLoading(false);
                     return;
                 }
             } else if (!categoryValue) {
                 showError("Please select or enter an expense category.");
-                setAddLoading(false);
+                setSubmitLoading(false);
                 return;
             }
 
@@ -263,9 +397,7 @@
 
                 if (res.ok) {
                     showSuccess("Expense added successfully!");
-                    document.getElementById("expenseForm").reset();
-                    // Set default date to today
-                    document.getElementById("date").value = new Date().toISOString().split('T')[0];
+                    resetForm();
                     loadExpenses();
                 } else {
                     const errorData = await res.json().catch(() => ({}));
@@ -275,7 +407,67 @@
                 showError("Network error. Please try again.");
                 console.error('Add expense error:', error);
             } finally {
-                setAddLoading(false);
+                setSubmitLoading(false);
+            }
+        }
+
+        async function updateExpense(event) {
+            event.preventDefault();
+            hideMessages();
+            setSubmitLoading(true);
+
+            const token = localStorage.getItem("token");
+            const expenseId = document.getElementById('expenseId').value;
+
+            // Get category value (either from select or custom input)
+            const categorySelect = document.getElementById("categorySelect");
+            const customCategory = document.getElementById("customCategory");
+            let categoryValue = categorySelect.value;
+            
+            if (categorySelect.value === "custom") {
+                categoryValue = customCategory.value.trim();
+                if (!categoryValue) {
+                    showError("Please enter a custom category.");
+                    setSubmitLoading(false);
+                    return;
+                }
+            } else if (!categoryValue) {
+                showError("Please select or enter an expense category.");
+                setSubmitLoading(false);
+                return;
+            }
+
+            const expense = {
+                description: document.getElementById("description").value,
+                icon: document.getElementById("icon").value,
+                amount: parseFloat(document.getElementById("amount").value),
+                category: categoryValue,
+                date: document.getElementById("date").value
+            };
+
+            try {
+                const res = await fetch(`/expense/update/${expenseId}`, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": "Bearer " + token,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(expense)
+                });
+
+                if (res.ok) {
+                    showSuccess("Expense updated successfully!");
+                    resetForm();
+                    loadExpenses();
+                } else {
+                    const errorData = await res.json().catch(() => ({}));
+                    showError(errorData.message || "Failed to update expense. Please try again.");
+                }
+            } catch (error) {
+                showError("Network error. Please try again.");
+                console.error('Update expense error:', error);
+            } finally {
+                setSubmitLoading(false);
             }
         }
 
@@ -384,8 +576,8 @@
                     datasets: [{
                         label: 'Expenses',
                         data: data,
-                        backgroundColor: '#f44336',
-                        borderColor: '#da190b',
+                        backgroundColor: '#FF3B30',
+                        borderColor: '#FF1744',
                         borderWidth: 1
                     }]
                 },
@@ -398,7 +590,19 @@
                             ticks: {
                                 callback: function(value) {
                                     return '$' + value.toLocaleString();
-                                }
+                                },
+                                color: '#FFFFFF'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#FFFFFF'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
                             }
                         }
                     },
